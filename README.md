@@ -1,10 +1,19 @@
-# fizz-buzz
+# fizz-buzz-as-a-service
 
-FIXME: description
+Are you tired of rewriting fizz buzz at every job interview, then this
+package is for you. 
+
+Just build the Docker container and run it on your favorite platform, 
+and you now have a REST-api that should give you the results, you'll need.
+
+    $ curl 127.0.0.1:3000/fizzbuzz/135 
+
+    $ FizzBuzz%
 
 ## Installation
 
-Download from http://example.com/FIXME.
+You'll need a system with leiningen and Docker installed
+
 
 ## Usage
 
