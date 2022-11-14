@@ -16,7 +16,7 @@ You'll need a system with leiningen and Docker installed
 
 To build to docker container just run make with:
 
-    $ make build
+    $ make uberjar build
 
 Which should build the docker container called fizzbuzz/fizzbuzz.
 

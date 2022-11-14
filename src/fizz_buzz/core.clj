@@ -1,5 +1,6 @@
 (ns fizz_buzz.core
   (:require [org.httpkit.server :as server]
+            [clojure.data.json :as json]
             [compojure.core :refer :all]
             [compojure.route :as route]
             [ring.middleware.defaults :refer :all])
@@ -10,28 +11,29 @@
   (let [fizz 3
         buzz 5
         fizzbuzz (* fizz buzz)]
-  (if (= 0 (mod i fizzbuzz))
+  {:result (if (= 0 (mod i fizzbuzz))
     "FizzBuzz"
     (if (= 0 (mod i fizz))
       "Fizz"
       (if (= 0 (mod i buzz))
         "Buzz"
-        i)))))
-
+        i)))})
+  )
 
 (defn fb [req]
-  (println req)
   (let [i (-> req
               :params
               :id
               Integer/parseInt
               )]
-  {:status 218
-   :headers {"Content-Type" "text/html"}
+  {:status 200
+   :headers {"Content-Type" "text/json"}
    :body (-> i
              fizz-buzz
-             str)}
+             json/write-str
+             )}
   ))
+
 
 (defroutes app-routes
            (GET "/fizzbuzz/:id" [] fb)
