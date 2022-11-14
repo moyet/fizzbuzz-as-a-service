@@ -1,11 +1,8 @@
-(ns fizz-buzz.core
+(ns fizz_buzz.core
   (:require [org.httpkit.server :as server]
             [compojure.core :refer :all]
             [compojure.route :as route]
-            [ring.middleware.defaults :refer :all]
-            [clojure.pprint :as pp]
-            [clojure.string :as str]
-            [clojure.data.json :as json])
+            [ring.middleware.defaults :refer :all])
   (:gen-class))
 
 (defn fizz-buzz

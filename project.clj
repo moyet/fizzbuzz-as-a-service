@@ -8,6 +8,6 @@
                  [http-kit "2.3.0"]
                  [ring/ring-defaults "0.3.2"]
                  [org.clojure/data.json "0.2.6"]]
-  :main ^:skip-aot fizz-buzz.core
+  :main ^:skip-aot fizz_buzz.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})

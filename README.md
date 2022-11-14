@@ -14,12 +14,22 @@ and you now have a REST-api that should give you the results, you'll need.
 
 You'll need a system with leiningen and Docker installed
 
+To build to docker container just run make with:
+
+    $ make build
+
+Which should build the docker container called fizzbuzz/fizzbuzz.
 
 ## Usage
 
-FIXME: explanation
+You can start the docker container on your own computer with
 
-    $ java -jar fizz-buzz-0.1.0-standalone.jar [args]
+    $ docker run -dp 3000:3000 fizzbuzz/fizzbuzz
+
+To test that it works, try to call the service with curl, or
+another web-client:
+
+    $ curl 127.0.0.1:3000/fizzbuzz/12    
 
 ## Options
 
@@ -39,7 +49,7 @@ FIXME: listing of options this app accepts.
 
 ## License
 
-Copyright © 2022 FIXME
+Copyright © 2022 Magnus Dreyer
 
 This program and the accompanying materials are made available under the
 terms of the Eclipse Public License 2.0 which is available at
