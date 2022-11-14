@@ -8,7 +8,11 @@ and you now have a REST-api that should give you the results, you'll need.
 
     $ curl 127.0.0.1:3000/fizzbuzz/135 
 
-    $ FizzBuzz%
+    $ {"result":"FizzBuzz"}%  
+
+To parse the result you could use jq  to remove that unused information like this:
+
+    $ curl 127.0.0.1:3000/fizzbuzz/15 -s | jq -r .result
 
 ## Installation
 
@@ -31,13 +35,12 @@ another web-client:
 
     $ curl 127.0.0.1:3000/fizzbuzz/12    
 
-## Options
-
-FIXME: listing of options this app accepts.
-
 ## Examples
 
-...
+I have included a test shell script that will query the api 200 times, and write the results
+to the screen.
+
+    $ ./fizzbuzz.sh
 
 ### Bugs
 
