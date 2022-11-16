@@ -3,22 +3,27 @@
             [clojure.data.json :as json]
             [compojure.core :refer :all]
             [compojure.route :as route]
-            [ring.middleware.defaults :refer :all])
+            [ring.middleware.defaults :refer :all]
+            [clojure.string :as str])
   (:gen-class))
+
+(defn- x [i val nam]
+  (if (= 0 (mod i val))
+    (-> nam name
+        str/capitalize)))
 
 (defn fizz-buzz
   [i]
-  (let [fizz 3
-        buzz 5
-        fizzbuzz (* fizz buzz)]
-  {:result (if (= 0 (mod i fizzbuzz))
-    "FizzBuzz"
-    (if (= 0 (mod i fizz))
-      "Fizz"
-      (if (= 0 (mod i buzz))
-        "Buzz"
-        i)))})
-  )
+  (let [
+        x2 #(x i (first %1) (second %1) )
+        values {3 :fizz
+                5 :buzz}
+        output (apply str (map x2 values))
+        output (if (= "" output)
+                 i
+                 output)
+        ]
+    {:result output}))
 
 (defn fb [req]
   (let [i (-> req
