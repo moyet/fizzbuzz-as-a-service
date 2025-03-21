@@ -36,8 +36,7 @@
    :body (-> i
              fizz-buzz
              json/write-str
-             )}
-  ))
+             )}))
 
 
 (defroutes app-routes
