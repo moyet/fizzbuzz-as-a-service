@@ -4,7 +4,8 @@
             [compojure.core :refer :all]
             [compojure.route :as route]
             [ring.middleware.defaults :refer :all]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [fizz-buzz.openapi :as openapi])
   (:gen-class))
 
 (defn- x [i val nam]
@@ -29,8 +30,7 @@
   (let [i (-> req
               :params
               :id
-              Integer/parseInt
-              )]
+              Integer/parseInt)]
   {:status 200
    :headers {"Content-Type" "text/json"}
    :body (-> i
@@ -41,14 +41,18 @@
 
 (defroutes app-routes
            (GET "/fizzbuzz/:id" [] fb)
-           (route/not-found "Error, page not found!"))
+           (GET "/openapi.json" [] (fn [_] {:status 200
+                                            :headers {"Content-Type" "application/json"}
+                                            :body (json/write-str openapi/openapi-spec)}))
+           (route/not-found "Error, page still not found!\n"))
 
 (defn -main
   "This is our main entry point"
   [& args]
   (let [port (Integer/parseInt (or (System/getenv "PORT") "3000"))]
     ; Run the server with Ring.defaults middleware
-    (server/run-server (wrap-defaults #'app-routes site-defaults) {:port port})
+    (server/run-server (wrap-defaults #'app-routes site-defaults) {:port port :host "0.0.0.0"})
+
     ; Run the server without ring defaults
     ;(server/run-server #'app-routes {:port port})
     (println (str "Running webserver at http:/127.0.0.1:" port "/"))))
