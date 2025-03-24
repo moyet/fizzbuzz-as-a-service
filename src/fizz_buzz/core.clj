@@ -4,7 +4,8 @@
             [compojure.core :refer :all]
             [compojure.route :as route]
             [ring.middleware.defaults :refer :all]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [fizz-buzz.openapi :as openapi])
   (:gen-class))
 
 (defn- x [i val nam]
@@ -29,8 +30,7 @@
   (let [i (-> req
               :params
               :id
-              Integer/parseInt
-              )]
+              Integer/parseInt)]
   {:status 200
    :headers {"Content-Type" "text/json"}
    :body (-> i
@@ -41,7 +41,10 @@
 
 (defroutes app-routes
            (GET "/fizzbuzz/:id" [] fb)
-           (route/not-found "Error, page not found!"))
+           (GET "/openapi.json" [] (fn [_] {:status 200
+                                            :headers {"Content-Type" "application/json"}
+                                            :body (json/write-str openapi/openapi-spec)}))
+           (route/not-found "Error, page still not found!\n"))
 
 (defn -main
   "This is our main entry point"
