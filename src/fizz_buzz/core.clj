@@ -5,7 +5,9 @@
             [compojure.route :as route]
             [ring.middleware.defaults :refer :all]
             [clojure.string :as str]
-            [fizz-buzz.openapi :as openapi])
+            [fizz-buzz.openapi :as openapi]
+            [clojure.spec.alpha :as s]
+            [fizz-buzz.spec :as spec])
   (:gen-class))
 
 (defn- x [i val nam]
@@ -32,13 +34,15 @@
 (defn fizz-b
   ([i] (fizz-b i defaults))
   ([i fizzings]
-   (let [an-atom (atom "")]
-     (doseq [[kw number] fizzings]
-       (if (zero? (mod i number))
-         (swap! an-atom str (name kw))))
-     (if (= "" @an-atom)
-       (str i)
-       @an-atom))))
+   (let [f (fn [s [kw number]]
+             (if (zero? (mod i number))
+               (str s (name kw))
+               s))
+         re (reduce f "" fizzings)]
+   (if (= "" re)
+     (str i)
+     re))))
+
 
 (defn fb [req]
   (let [i (-> req
@@ -51,21 +55,24 @@
              fizz-buzz
              json/write-str)}))
 
+
 (defn fb-custom
   [req]
-  (let [json-body (-> req
-                 :body
-                 slurp
-                 (json/read-json keyword))
-        body  (into {} (map (fn [[kw v]] [kw (Integer/parseInt v)])) json-body )
-        i (-> req
+  (let [i (-> req
               :params
               :id
               Integer/parseInt)]
-    (println body)
+  (if-let [body (some-> req
+                        :body
+                        slurp)]
+    (let [json-body (json/read-str body :key-fn keyword)
+          body  (into {} (map (fn [[kw v]] [kw (Integer/parseInt v)])) json-body )]
+      {:status  200
+       :headers {"Content-Type" "text/html"}
+       :body    (fizz-b i body)})
     {:status  200
      :headers {"Content-Type" "text/html"}
-     :body    (fizz-b i body)}))
+     :body    (fizz-b i)})))
 
 (defroutes app-routes
            (GET "/fizzbuzz/:id" [] fb)
