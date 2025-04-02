@@ -1,0 +1,62 @@
+# Namespace
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: development
+
+# Deployment
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fizz-buzz-as-a-service
+  namespace: development  # Ensure everything is in the same namespace
+  labels:
+    app: faas
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: faas  # Must match pod labels
+  template:
+    metadata:
+      labels:
+        app: faas  # Must match service selector
+    spec:
+      containers:
+        - name: fizzbuzz-api
+          image: fizzbuzz-api
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3000
+          env:
+            - name: FIZZ_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: FIZZ_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: FIZZ_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+
+# Service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fizzbuzz-service
+  namespace: development  # Service must be in the same namespace as Deployment
+spec:
+  type: LoadBalancer
+  selector:
+    app: faas  # This must match the Deployment label
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+      nodePort: 30001  # Expose on port 30001 (Minikube exposes it)
