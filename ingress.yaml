@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fizzbuzz-ingress
+  namespace: development
+spec:
+  rules:
+    - host: fizzbuzz.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                  name: fizzbuzz-service  # This must match your Service name
+                port:
+                  number: 80
