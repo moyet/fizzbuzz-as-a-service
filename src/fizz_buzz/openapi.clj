@@ -11,5 +11,9 @@
                                     :parameters {:path {:id s/Int}}
                                     :responses {200 {:schema FizzBuzz
                                                      :description "Found it!"}
-                                                404 {:description "Ohnoes."}}
-                                    } }}}))
+                                                404 {:description "Ohnoes."}}}
+                              :post {:summery "Custom fizzbuzz"
+                                     :parameters {:path {:id s/Int}}
+                                     :responses {200 {:schema FizzBuzz
+                                                      :description "Found it!"}
+                                                 404 {:description "Ohnoes."}}}}}}))

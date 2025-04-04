@@ -4,6 +4,7 @@
             [compojure.core :refer :all]
             [compojure.route :as route]
             [ring.middleware.defaults :refer :all]
+            [ring.util.response :as resp]
             [clojure.string :as str]
             [fizz-buzz.openapi :as openapi]
             [clojure.spec.alpha :as s]
@@ -15,9 +16,13 @@
     (-> nam name
         str/capitalize)))
 
+(def defaults
+  {:Fizz 3
+   :Buzz 5})
+
 (defn fizz-buzz
   [i]
-  (let [x2 #(x i (first %1) (second %1) )
+  (let [x2 #(x i (first %1) (second %1))
         values {3 :fizz
                 5 :buzz}
         output (apply str (map x2 values))
@@ -27,9 +32,6 @@
         ]
     {:result output}))
 
-(def defaults
-  {:Fizz 3
-   :Buzz 5})
 
 (defn fizz-b
   ([i] (fizz-b i defaults))
@@ -39,9 +41,9 @@
                (str s (name kw))
                s))
          re (reduce f "" fizzings)]
-   (if (= "" re)
-     (str i)
-     re))))
+     (if (= "" re)
+       (str i)
+       re))))
 
 
 (defn fb [req]
@@ -49,11 +51,11 @@
               :params
               :id
               Integer/parseInt)]
-  {:status 200
-   :headers {"Content-Type" "text/json"}
-   :body (-> i
-             fizz-buzz
-             json/write-str)}))
+    {:status  200
+     :headers {"Content-Type" "application/json"}
+     :body    (-> i
+                  fizz-buzz
+                  json/write-str)}))
 
 
 (defn fb-custom
@@ -62,24 +64,38 @@
               :params
               :id
               Integer/parseInt)]
-  (if-let [body (some-> req
-                        :body
-                        slurp)]
-    (let [json-body (json/read-str body :key-fn keyword)
-          body  (into {} (map (fn [[kw v]] [kw (Integer/parseInt v)])) json-body )]
+    (if-let [body (some-> req
+                          :body
+                          slurp)]
+
+      (try
+        (let [json-body (json/read-str body :key-fn keyword)
+              body (into {} (map (fn [[kw v]] [kw (Integer/parseInt v)])) json-body)]
+          (if (s/valid? ::spec/fizz-buzz-rules body)
+            {:status  200
+             :headers {"Content-Type" "application/json"}
+             :body    (fizz-b i body)}
+            (do
+              (println "error: " (s/explain ::spec/fizz-buzz-rules body))
+              {:status  400
+               :headers {"Content-Type" "application/json"}
+               :body    "Your data, doesn't match what we expected"})))
+        (catch Exception e
+          (do
+            (println "Error:" (.getMessage e))
+            {:status  400
+             :headers {"Content-Type" "application/json"}
+             :body    "Your data, doesn't match what we expected"})))
       {:status  200
-       :headers {"Content-Type" "text/html"}
-       :body    (fizz-b i body)})
-    {:status  200
-     :headers {"Content-Type" "text/html"}
-     :body    (fizz-b i)})))
+       :headers {"Content-Type" "application/json"}
+       :body    (fizz-b i)})))
 
 (defroutes app-routes
            (GET "/fizzbuzz/:id" [] fb)
            (POST "/fizzbuzz/:id" [] fb-custom)
-           (GET "/openapi.json" [] (fn [_] {:status 200
+           (GET "/openapi.json" [] (fn [_] {:status  200
                                             :headers {"Content-Type" "application/json"}
-                                            :body (json/write-str openapi/openapi-spec)}))
+                                            :body    (json/write-str openapi/openapi-spec)}))
            (route/not-found "Error, page still not found!\n"))
 
 (def custom-middleware
