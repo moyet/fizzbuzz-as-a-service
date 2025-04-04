@@ -11,27 +11,25 @@
             [fizz-buzz.spec :as spec])
   (:gen-class))
 
-(defn- x [i val nam]
-  (if (= 0 (mod i val))
-    (-> nam name
-        str/capitalize)))
-
 (def defaults
   {:Fizz 3
    :Buzz 5})
+
+(defn- x [i val nam]
+  (if (= 0 (mod i val))
+    (-> nam
+        name
+        str/capitalize)))
 
 (defn fizz-buzz
   [i]
   (let [x2 #(x i (first %1) (second %1))
         values {3 :fizz
                 5 :buzz}
-        output (apply str (map x2 values))
-        output (if (= "" output)
-                 i
-                 output)
-        ]
-    {:result output}))
-
+        output (apply str (map x2 values))]
+    {:result (if (= "" output)
+               i
+               output)}))
 
 (defn fizz-b
   ([i] (fizz-b i defaults))
@@ -51,12 +49,12 @@
               :params
               :id
               Integer/parseInt)]
-    {:status  200
-     :headers {"Content-Type" "application/json"}
-     :body    (-> i
-                  fizz-buzz
-                  json/write-str)}))
-
+    (-> i
+        fizz-buzz
+        json/write-str
+        resp/response
+        (resp/status 200)
+        (resp/header "Content-Type" "application/json"))))
 
 (defn fb-custom
   [req]
@@ -67,35 +65,42 @@
     (if-let [body (some-> req
                           :body
                           slurp)]
-
       (try
         (let [json-body (json/read-str body :key-fn keyword)
               body (into {} (map (fn [[kw v]] [kw (Integer/parseInt v)])) json-body)]
           (if (s/valid? ::spec/fizz-buzz-rules body)
-            {:status  200
-             :headers {"Content-Type" "application/json"}
-             :body    (fizz-b i body)}
+            (-> (fizz-b i body)
+                resp/response
+                (resp/status 400)
+                (resp/header "Content-Type" "application/json"))
             (do
               (println "error: " (s/explain ::spec/fizz-buzz-rules body))
-              {:status  400
-               :headers {"Content-Type" "application/json"}
-               :body    "Your data, doesn't match what we expected"})))
+              (-> "Your data, doesn't match what we expected"
+                  resp/response
+                  (resp/status 400)
+                  (resp/header "Content-Type" "application/json")))))
         (catch Exception e
           (do
             (println "Error:" (.getMessage e))
-            {:status  400
-             :headers {"Content-Type" "application/json"}
-             :body    "Your data, doesn't match what we expected"})))
-      {:status  200
-       :headers {"Content-Type" "application/json"}
-       :body    (fizz-b i)})))
+            (-> "Your data, doesn't match what we expected"
+                resp/response
+                (resp/status 400)
+                (resp/header "Content-Type" "application/json")))))
+      (-> i
+          fizz-b
+          resp/response
+          (resp/header "Content-Type" "application/json")
+          (resp/status 200)))))
 
 (defroutes app-routes
            (GET "/fizzbuzz/:id" [] fb)
            (POST "/fizzbuzz/:id" [] fb-custom)
-           (GET "/openapi.json" [] (fn [_] {:status  200
-                                            :headers {"Content-Type" "application/json"}
-                                            :body    (json/write-str openapi/openapi-spec)}))
+           (GET "/openapi.json" [] (fn [_]
+                                     (-> openapi/openapi-spec
+                                         json/write-str
+                                         resp/response
+                                         (resp/status 200)
+                                         (resp/header "Content-Type" "application/json"))))
            (route/not-found "Error, page still not found!\n"))
 
 (def custom-middleware
