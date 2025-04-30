@@ -14,9 +14,19 @@ To parse the result you could use jq  to remove that unused information like thi
 
     $ curl 127.0.0.1:3000/fizzbuzz/15 -s | jq -r .result
 
+## Advanced uses
+
+If the interviewer then ask you how to handle a more varied input, fizzbuzz-as-a-service also have you covered.
+
+    $ curl -X POST http://localhost:3000/fizzbuzz/105 \ 
+        -H "Content-Type: application/json" \
+        -d '{"Fazz":"3", "Bizz":"5", "Jazz":"7"}'
+
 ## Installation
 
 You'll need a system with leiningen and Docker installed
+
+    $ sudo pacman -S leinigen docker jq
 
 To build to docker container just run make with:
 
