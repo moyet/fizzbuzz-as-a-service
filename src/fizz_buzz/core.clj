@@ -1,4 +1,4 @@
-(ns fizz_buzz.core
+(ns fizz-buzz.core
   (:require [org.httpkit.server :as server]
             [clojure.data.json :as json]
             [compojure.core :refer :all]
