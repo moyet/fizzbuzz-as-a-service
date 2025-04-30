@@ -7,13 +7,32 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
-
+  test:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Install dependencies
-      run: lein deps
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '21'
+
+    - name: Install Leiningen
+      run: |
+        curl https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein > lein
+        chmod +x lein
+        sudo mv lein /usr/local/bin
+
+    - name: Cache Maven/Lein deps
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/project.clj') }}
+        restore-keys: |
+          ${{ runner.os }}-m2
+
     - name: Run tests
       run: lein test
