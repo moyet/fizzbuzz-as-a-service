@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for fizzbuzz-as-a-service on 2025-04-30T20:05:49Z
+# fly.toml app configuration file generated for fizzbuzz-as-a-service-solitary-sun-4916 on 2025-04-30T22:53:13+02:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'fizzbuzz-as-a-service'
+app = 'fizzbuzz-as-a-service-solitary-sun-4916'
 primary_region = 'arn'
 
 [build]
@@ -17,17 +17,16 @@ primary_region = 'arn'
   processes = ['app']
 
 [[services]]
+  protocol = 'tcp'
   internal_port = 3000
-  protocol = "tcp"
 
   [[services.ports]]
     port = 80
-    handlers = ["http"]
+    handlers = ['http']
 
   [[services.ports]]
     port = 443
-    handlers = ["tls", "http"]
-
+    handlers = ['tls', 'http']
 
 [[vm]]
   memory = '1gb'
