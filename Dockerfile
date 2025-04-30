@@ -19,6 +19,6 @@ WORKDIR /app
 
 COPY --from=builder /app/target/uberjar/*.jar fizz-buzz.jar
 
-CMD ["java", "-jar", "/tmp/fizz-buzz.jar"]
+CMD ["java", "-jar", "/app/fizz-buzz.jar"]
 
 EXPOSE 3000

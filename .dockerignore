@@ -1,0 +1,23 @@
+# flyctl launch added from .gitignore
+target
+classes
+checkouts
+**/profiles.clj
+**/pom.xml
+**/pom.xml.asc
+**/*.jar
+**/*.class
+.lein-*
+.nrepl-port
+**/.hgignore
+**/.hg
+**/.idea
+**/.lsp
+**/.clj-kondo
+**/*.iml
+
+# flyctl launch added from .idea/.gitignore
+# Default ignored files
+.idea/shelf
+.idea/workspace.xml
+fly.toml
