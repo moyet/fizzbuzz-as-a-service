@@ -14,9 +14,19 @@ To parse the result you could use jq  to remove that unused information like thi
 
     $ curl 127.0.0.1:3000/fizzbuzz/15 -s | jq -r .result
 
+## Advanced uses
+
+If the interviewer then ask you how to handle a more varied input, fizzbuzz-as-a-service also have you covered.
+
+    $ curl -X POST http://localhost:3000/fizzbuzz/105 \ 
+        -H "Content-Type: application/json" \
+        -d '{"Fazz":"3", "Bizz":"5", "Jazz":"7"}'
+
 ## Installation
 
 You'll need a system with leiningen and Docker installed
+
+    $ sudo pacman -S leinigen docker jq
 
 To build to docker container just run make with:
 
@@ -35,12 +45,15 @@ another web-client:
 
     $ curl 127.0.0.1:3000/fizzbuzz/12    
 
+**⚠️ Note:** If you're not seeing any response, double-check that you started the container with `-p 3000:3000`. The web server listens on port 3000 inside the container, and you need to publish that port to your host.
+
+
 ## Examples
 
 I have included a test shell script that will query the api 200 times, and write the results
 to the screen.
 
-    $ ./fizzbuzz.sh
+    $ ./fizzbuzz_example.sh
 
 ### Bugs
 
@@ -52,7 +65,7 @@ to the screen.
 
 ## License
 
-Copyright © 2022 Magnus Dreyer
+Copyright © 2025 Magnus Dreyer
 
 This program and the accompanying materials are made available under the
 terms of the Eclipse Public License 2.0 which is available at

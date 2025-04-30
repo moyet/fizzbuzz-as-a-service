@@ -16,7 +16,7 @@
    :Buzz 5})
 
 (defn- x [i val nam]
-  (if (= 0 (mod i val))
+  (when (= 0 (mod i val))
     (-> nam
         name
         str/capitalize)))
@@ -69,9 +69,9 @@
         (let [json-body (json/read-str body :key-fn keyword)
               body (into {} (map (fn [[kw v]] [kw (Integer/parseInt v)])) json-body)]
           (if (s/valid? ::spec/fizz-buzz-rules body)
-            (-> (fizz-b i body)
+            (-> {:result (fizz-b i body)}
                 resp/response
-                (resp/status 400)
+                (resp/status 200)
                 (resp/header "Content-Type" "application/json"))
             (do
               (println "error: " (s/explain ::spec/fizz-buzz-rules body))
@@ -86,8 +86,7 @@
                 resp/response
                 (resp/status 400)
                 (resp/header "Content-Type" "application/json")))))
-      (-> i
-          fizz-b
+      (-> {:result (fizz-b i)}
           resp/response
           (resp/header "Content-Type" "application/json")
           (resp/status 200)))))
