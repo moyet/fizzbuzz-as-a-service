@@ -28,7 +28,7 @@
                 5 :buzz}
         output (apply str (map x2 values))]
     {:result (if (= "" output)
-               i
+               (str i)
                output)}))
 
 (defn fizz-b
@@ -43,53 +43,61 @@
        (str i)
        re))))
 
+(defn- json-response
+  [status body]
+  (-> body
+      json/write-str
+      resp/response
+      (resp/status status)
+      (resp/header "Content-Type" "application/json")))
+
+(defn- error-response
+  [message]
+  (json-response 400 {:error message}))
+
+(defn- parse-id
+  [req]
+  (try
+    (-> req :params :id Integer/parseInt)
+    (catch Exception _
+      nil)))
+
+(defn- parse-rule-value
+  [v]
+  (cond
+    (integer? v) v
+    (string? v) (Integer/parseInt v)
+    :else (throw (ex-info "invalid-rule-value" {:value v}))))
+
+(defn- parse-custom-rules
+  [req]
+  (let [body (some-> req :body slurp)]
+    (if (str/blank? body)
+      nil
+      (let [json-body (json/read-str body :key-fn keyword)]
+        (when-not (map? json-body)
+          (throw (ex-info "invalid-rules-body" {:value json-body})))
+        (let [rules (into {} (map (fn [[kw v]] [kw (parse-rule-value v)])) json-body)]
+          (if (s/valid? ::spec/fizz-buzz-rules rules)
+            rules
+            (throw (ex-info "invalid-rules-spec" {:value rules}))))))))
 
 (defn fb [req]
-  (let [i (-> req
-              :params
-              :id
-              Integer/parseInt)]
-    (-> i
-        fizz-buzz
-        json/write-str
-        resp/response
-        (resp/status 200)
-        (resp/header "Content-Type" "application/json"))))
+  (if-let [i (parse-id req)]
+    (json-response 200 (fizz-buzz i))
+    (error-response "Path parameter 'id' must be an integer.")))
 
 (defn fb-custom
   [req]
-  (let [i (-> req
-              :params
-              :id
-              Integer/parseInt)]
-    (if-let [body (some-> req
-                          :body
-                          slurp)]
-      (try
-        (let [json-body (json/read-str body :key-fn keyword)
-              body (into {} (map (fn [[kw v]] [kw (Integer/parseInt v)])) json-body)]
-          (if (s/valid? ::spec/fizz-buzz-rules body)
-            (-> {:result (fizz-b i body)}
-                resp/response
-                (resp/status 200)
-                (resp/header "Content-Type" "application/json"))
-            (do
-              (println "error: " (s/explain ::spec/fizz-buzz-rules body))
-              (-> "Your data, doesn't match what we expected"
-                  resp/response
-                  (resp/status 400)
-                  (resp/header "Content-Type" "application/json")))))
-        (catch Exception e
-          (do
-            (println "Error:" (.getMessage e))
-            (-> "Your data, doesn't match what we expected"
-                resp/response
-                (resp/status 400)
-                (resp/header "Content-Type" "application/json")))))
-      (-> {:result (fizz-b i)}
-          resp/response
-          (resp/header "Content-Type" "application/json")
-          (resp/status 200)))))
+  (if-let [i (parse-id req)]
+    (try
+      (if-let [rules (parse-custom-rules req)]
+        (json-response 200 {:result (fizz-b i rules)})
+        (json-response 200 {:result (fizz-b i)}))
+      (catch Exception e
+        (println "Error:" (.getMessage e))
+        (error-response "Custom rules must be a JSON object mapping names to positive integers.")))
+    (error-response "Path parameter 'id' must be an integer.")))
 
 (defroutes app-routes
            (GET "/fizzbuzz/:id" [] fb)
